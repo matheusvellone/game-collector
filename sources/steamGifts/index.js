@@ -125,5 +125,7 @@ export default async ({ cookie }) => {
   })
   sortByScore(giveaways)
 
+  console.table(giveaways)
+
   await Promise.each(giveaways, enterGiveaway(instance))
 }
