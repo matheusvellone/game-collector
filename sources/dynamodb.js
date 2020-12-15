@@ -1,5 +1,7 @@
 import { DynamoDB } from 'aws-sdk'
 
+import '../config/aws'
+
 const dynamodb = new DynamoDB.DocumentClient()
 
 export const getRowsForUser = async (username) => {
