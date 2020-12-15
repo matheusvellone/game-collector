@@ -23,13 +23,19 @@ const getGiveaways = async (instance) => {
   ]
 }
 
-const sortByScore = array => array.sort((a, b) => b.score - a.score)
+const selectGiveaways = giveaways => {
+  giveaways.sort((a, b) => b.score - a.score)
+
+  return giveaways.filter((giveaway) => {
+    return !giveaway.alreadyEntered && giveaway.end < 120
+  })
+}
 
 const getGiveawaysFromPage = async (instance, page, options = {}) => {
   const { data: body } = await instance.get(page)
   const $ = cheerio.load(body)
 
-  const pageGiveaways = []
+  let pageGiveaways = []
 
   $('.giveaway__row-outer-wrap').each((index, giveaway) => {
     const $giveaway = $(giveaway)
@@ -39,7 +45,7 @@ const getGiveawaysFromPage = async (instance, page, options = {}) => {
     pageGiveaways.push(giveawayData)
   })
 
-  sortByScore(pageGiveaways)
+  pageGiveaways = selectGiveaways(pageGiveaways)
 
   if (options.top) {
     pageGiveaways.length = options.top
@@ -120,10 +126,7 @@ export default async ({ cookie }) => {
 
   let giveaways = await getGiveaways(instance)
 
-  giveaways = giveaways.filter((giveaway) => {
-    return !giveaway.alreadyEntered && giveaway.end < 120
-  })
-  sortByScore(giveaways)
+  giveaways = selectGiveaways(giveaways)
 
   console.table(giveaways)
 
