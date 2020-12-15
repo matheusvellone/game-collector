@@ -19,7 +19,7 @@ const getGiveaways = async (instance) => {
     ... await getGiveawaysFromPage(instance, '/giveaways/search?copy_min=2'),
     ... await getGiveawaysFromPage(instance, '/giveaways/search?type=group'),
     ... await getGiveawaysFromPage(instance, '/giveaways/search?type=wishlist', { wishlist: true }),
-    ... await getGiveawaysFromPage(instance, '/', { top: 5 }),
+    ... await getGiveawaysFromPage(instance, '/', { top: 2 }),
   ]
 }
 
