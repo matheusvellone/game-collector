@@ -19,11 +19,13 @@ const getGiveaways = async (instance) => {
     ... await getGiveawaysFromPage(instance, '/giveaways/search?copy_min=2'),
     ... await getGiveawaysFromPage(instance, '/giveaways/search?type=group'),
     ... await getGiveawaysFromPage(instance, '/giveaways/search?type=wishlist', { wishlist: true }),
-    ... await getGiveawaysFromPage(instance, '/'),
+    ... await getGiveawaysFromPage(instance, '/', { top: 5 }),
   ]
 }
 
-const getGiveawaysFromPage = async (instance, page, options) => {
+const sortByScore = array => array.sort((a, b) => b.score - a.score)
+
+const getGiveawaysFromPage = async (instance, page, options = {}) => {
   const { data: body } = await instance.get(page)
   const $ = cheerio.load(body)
 
@@ -37,6 +39,12 @@ const getGiveawaysFromPage = async (instance, page, options) => {
     pageGiveaways.push(giveawayData)
   })
 
+  sortByScore(pageGiveaways)
+
+  if (options.top) {
+    pageGiveaways.length = options.top
+  }
+
   return pageGiveaways
 }
 
@@ -48,8 +56,18 @@ const extractGiveawayData = (giveawayRoot, {
 
   const game = header.text()
   const [, code] = giveawayRoot.find('a.giveaway__heading__name').attr('href').match(/giveaway\/(.+?)\/.*/)
-  const points = Number(giveawayRoot.find('.giveaway__heading__thin').text().match(/\d+/)[0])
   const alreadyEntered = giveawayRoot.find('.giveaway__row-inner-wrap').hasClass('is-faded')
+
+  let points
+  let copies
+
+  if (giveawayRoot.find('.giveaway__heading__thin').length === 2) {
+    copies = Number(giveawayRoot.find('.giveaway__heading__thin:nth-child(2)').text().match(/\d+/)[0])
+    points = Number(giveawayRoot.find('.giveaway__heading__thin:nth-child(3)').text().match(/\d+/)[0])
+  } else {
+    points = Number(giveawayRoot.find('.giveaway__heading__thin:nth-child(2)').text().match(/\d+/)[0])
+    copies = 1
+  }
 
   const levelText = giveawayRoot.find('.giveaway__column--contributor-level').text()
   let level = 0
@@ -60,7 +78,7 @@ const extractGiveawayData = (giveawayRoot, {
 
   const group = giveawayRoot.find('.giveaway__column--group').length > 0
 
-  const currentParticipants = Number(giveawayRoot.find('.giveaway__links > a:nth-child(1) > span').text().match(/\d+/)[0])
+  const currentParticipants = Number(giveawayRoot.find('.giveaway__links > a:nth-child(1) > span').text().replace(',', '').match(/\d+/)[0])
   const end = moment(giveawayRoot.find('span[data-timestamp]').first().data('timestamp') * 1000).diff(now, 'minutes')
   const created = moment(giveawayRoot.find('span[data-timestamp]').last().data('timestamp') * 1000).diff(now, 'minutes')
 
@@ -105,9 +123,7 @@ export default async ({ cookie }) => {
   giveaways = giveaways.filter((giveaway) => {
     return !giveaway.alreadyEntered && giveaway.end < 120
   })
-  giveaways.sort((a, b) => b.score - a.score)
-
-  console.table(giveaways)
+  sortByScore(giveaways)
 
   await Promise.each(giveaways, enterGiveaway(instance))
 }
