@@ -1,6 +1,6 @@
 import Promise from 'bluebird'
-import * as sources from '../sources'
-import { getRowsForUser } from '../sources/dynamodb'
+import * as sources from '../../sources'
+import { getRowsForUser } from '../../sources/dynamodb'
 
 export default async (req, res) => {
   const { PASSWORD } = process.env
