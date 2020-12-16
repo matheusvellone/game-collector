@@ -3,6 +3,7 @@ import axios from 'axios'
 import moment from 'moment'
 import cheerio from 'cheerio'
 import Promise from 'bluebird'
+import { uniqBy, prop } from 'ramda'
 
 const createInstance = (cookie) => {
   return axios.create({
@@ -23,12 +24,14 @@ const getGiveaways = async (instance) => {
   ]
 }
 
-const selectGiveaways = giveaways => {
+const selectGiveaways = (giveaways) => {
   giveaways.sort((a, b) => b.score - a.score)
 
-  return giveaways.filter((giveaway) => {
+  const wantedGiveaways = giveaways.filter((giveaway) => {
     return !giveaway.alreadyEntered && giveaway.end < 120
   })
+
+  return uniqBy(prop('code'), wantedGiveaways)
 }
 
 const getGiveawaysFromPage = async (instance, page, options = {}) => {
