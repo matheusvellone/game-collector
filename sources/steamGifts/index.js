@@ -15,12 +15,12 @@ const createInstance = (cookie) => {
   })
 }
 
-const getGiveaways = async (instance) => {
+const getGiveaways = async (instance, topNormalGiveaways) => {
   return [
     ... await getGiveawaysFromPage(instance, '/giveaways/search?copy_min=2'),
     ... await getGiveawaysFromPage(instance, '/giveaways/search?type=group'),
     ... await getGiveawaysFromPage(instance, '/giveaways/search?type=wishlist', { wishlist: true }),
-    ... await getGiveawaysFromPage(instance, '/', { top: 2 }),
+    ... await getGiveawaysFromPage(instance, '/', { top: topNormalGiveaways }),
   ]
 }
 
@@ -124,10 +124,10 @@ const enterGiveaway = instance => async (giveaway) => {
   await instance.post('/ajax.php', postBody)
 }
 
-export default async ({ cookie }) => {
+export default async ({ cookie, normalGiveaways }) => {
   const instance = createInstance(cookie)
 
-  let giveaways = await getGiveaways(instance)
+  let giveaways = await getGiveaways(instance, normalGiveaways)
 
   giveaways = selectGiveaways(giveaways)
 
