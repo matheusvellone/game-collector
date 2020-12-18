@@ -50,7 +50,7 @@ const getGiveawaysFromPage = async (instance, page, options = {}) => {
 
   pageGiveaways = selectGiveaways(pageGiveaways)
 
-  if (options.top) {
+  if (options.top && pageGiveaways.length > options.top) {
     pageGiveaways.length = options.top
   }
 
