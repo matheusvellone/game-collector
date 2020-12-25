@@ -3,7 +3,7 @@ import axios from 'axios'
 import moment from 'moment'
 import cheerio from 'cheerio'
 import Promise from 'bluebird'
-import { uniqBy, prop } from 'ramda'
+import { uniqBy, prop, flatten } from 'ramda'
 
 const createInstance = (cookie) => {
   return axios.create({
@@ -16,12 +16,12 @@ const createInstance = (cookie) => {
 }
 
 const getGiveaways = async (instance, topNormalGiveaways) => {
-  return [
-    ... await getGiveawaysFromPage(instance, '/giveaways/search?copy_min=2'),
-    ... await getGiveawaysFromPage(instance, '/giveaways/search?type=group'),
-    ... await getGiveawaysFromPage(instance, '/giveaways/search?type=wishlist', { wishlist: true }),
-    ... await getGiveawaysFromPage(instance, '/', { top: topNormalGiveaways }),
-  ]
+  return Promise.all([
+    getGiveawaysFromPage(instance, '/giveaways/search?copy_min=2'),
+    getGiveawaysFromPage(instance, '/giveaways/search?type=group'),
+    getGiveawaysFromPage(instance, '/giveaways/search?type=wishlist', { wishlist: true }),
+    getGiveawaysFromPage(instance, '/', { top: topNormalGiveaways }),
+  ]).then(flatten)
 }
 
 const selectGiveaways = (giveaways) => {
